@@ -16,7 +16,7 @@ const int MATCH_MIN = 0;
 const int MATCH_MAX = 1;
 
 /*
- * readMatchingFile
+ * readMatrix
  * read a file into a matrix object
  * file must have matrix dimension as first line
  * matrix must be square
@@ -29,17 +29,37 @@ void readMatrix(const char* filename, MatrixXd& m) {
     return;
   }
   
-  int dim;
-  fin >> dim;
+  // read in matrix dimensions and
+  // create a matrix of that size
+  int n_rows, n_cols;
+  fin >> n_rows >> n_cols;
+  MatrixXd temp(n_rows, n_cols);
   
-  m.resize(dim,dim);
-  
-  for (int i=0; i<dim; i++) {
-    for (int j=0; j<dim; j++) {
-      fin >> m(i,j);
+  // read elements into the temporary matrix
+  for (int i=0; i<n_rows; i++) {
+    for (int j=0; j<n_cols; j++) {
+      fin >> temp(i,j);
     }
   }
   fin.close();
+  
+  // if the dimensions are equal (square matrix), we're done
+  // else, have to figure out larger dimension and pad with matrix max
+  if (n_rows == n_cols) {
+    m = temp;
+  }
+  else {
+    float max_elem = temp.maxCoeff(); // find the max element
+    float dim = max(n_rows, n_cols); // find the dimension for the new, square matrix
+    m.resize(dim,dim);
+    // fill the matrix with the elements from temp and pad with max element
+    for (int i=0; i < dim; i++) {
+      for (int j=0; j < dim; j++) {
+        if (i >= n_rows || j >= n_cols) m(i,j) = max_elem;
+        else m(i,j) = temp(i,j);
+      }
+    }
+  }
 }
 
 /*
